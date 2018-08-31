@@ -4,6 +4,22 @@ set -e
 
 initPwd=$PWD
 
+pyPkg=
+pyCmd=
+for minor in 6 5 4 3 2 ; do
+	cmd="/usr/bin/python3.$minor"
+	if [ -f "$cmd" ] ; then
+		pyPkg="python3$minor"
+		pyCmd="$cmd"
+		break
+	fi
+done
+if [ -z "$pyPkg" ] ; then
+	echo "Please install python3.6 and try again" >&2
+	exit 1
+fi
+echo "Using python package \"$pyPkg\""
+
 myPath="$0"
 if [ "${myPath:0:2}" == "./" ] ; then
 	myPath=$initPwd${myPath:1}
@@ -21,7 +37,7 @@ tmpDir="$HOME/.${pkgName}/tmp/install-arch"
 mkdir -p $tmpDir
 cd $tmpDir
 
-depends=('python>=3.2')
+depends=("$pyPkg")
 depends+=('python-gobject') ## The new gobject introspection
 #depends+=('python-gflags')
 depends+=('python-httplib2')
@@ -57,7 +73,7 @@ conflicts=('starcal-git')
 source=()
 md5sums=()
 package() {
-	\"\$sourceDir/install\" \"\$pkgdir\" --for-pkg
+	\"\$sourceDir/install\" \"\$pkgdir\" --for-pkg --python='$pyCmd'
 }" > PKGBUILD
 
 makepkg -sif
